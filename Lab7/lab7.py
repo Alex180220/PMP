@@ -1,6 +1,7 @@
 import arviz as az
 import matplotlib.pyplot as plt
 import math
+from scipy import stats
 
 import numpy as np
 import pymc3 as pm
@@ -39,3 +40,13 @@ if __name__ == "__main__":
         y_pred = pm.Normal('y_pred', mu=μ, sd=ε, observed=price)
         step = pm.Slice()
         trace = pm.sample(2000, step=step, return_inferencedata=True, cores=4)
+
+    beta_c, alpha_c = stats.linregress(speed, hardDrive)[:2]
+    plt.plot(speed, (alpha_c + beta_c * speed), 'k', label='non-robust', alpha=0.5)
+    plt.plot(speed, hardDrive, 'C0o')
+    alpha_m = trace.posterior['α'].mean().item()
+    beta1_m = trace.posterior['β1'].mean().item()
+    beta2_m = trace.posterior['β2'].mean().item()
+    plt.plot(speed, alpha_m + beta1_m * speed, c='k')
+
+    az.summary(trace, var_names=varnames)
